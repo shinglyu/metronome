@@ -17,7 +17,10 @@ var last16thNoteDrawn = -1; // the last "box" we drew on the screen
 var notesInQueue = [];      // the notes that have been put into the web audio,
                             // and may or may not have played yet. {note, time}
 var timerWorker = null;     // The Web Worker used to fire timer messages
+var volumeGain = 2;
 
+
+var pattern_buleria = [0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1];
 
 // First, let's shim the requestAnimationFrame API, with a setTimeout fallback
 window.requestAnimFrame = (function(){
@@ -38,7 +41,7 @@ function nextNote() {
     nextNoteTime += 0.25 * secondsPerBeat;    // Add beat length to last beat time
 
     current16thNote++;    // Advance the beat number, wrap to zero
-    if (current16thNote == 16) {
+    if (current16thNote == 12) {
         current16thNote = 0;
     }
 }
@@ -51,17 +54,29 @@ function scheduleNote( beatNumber, time ) {
         return; // we're not playing non-8th 16th notes
     if ( (noteResolution==2) && (beatNumber%4))
         return; // we're not playing non-quarter 8th notes
+    // TODO: extract this:
 
     // create an oscillator
     var osc = audioContext.createOscillator();
-    osc.connect( audioContext.destination );
+    //osc.connect( audioContext.destination );
+    /*
     if (beatNumber % 16 === 0)    // beat 0 == high pitch
         osc.frequency.value = 880.0;
     else if (beatNumber % 4 === 0 )    // quarter notes = medium pitch
         osc.frequency.value = 440.0;
     else                        // other 16th notes = low pitch
         osc.frequency.value = 220.0;
+    */
+    if (pattern_buleria[beatNumber % 12] === 1)    // beat 0 == high pitch
+        osc.frequency.value = 880.0;
+    else 
+        osc.frequency.value = 440.0;
 
+    var gain = audioContext.createGain();
+    gain.gain.value = volumeGain;
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+ 
     osc.start( time );
     osc.stop( time + noteLength );
 }
@@ -111,9 +126,9 @@ function draw() {
     if (last16thNoteDrawn != currentNote) {
         var x = Math.floor( canvas.width / 18 );
         canvasContext.clearRect(0,0,canvas.width, canvas.height); 
-        for (var i=0; i<16; i++) {
+        for (var i=0; i<12; i++) {
             canvasContext.fillStyle = ( currentNote == i ) ? 
-                ((currentNote%4 === 0)?"red":"blue") : "black";
+                ((pattern_buleria[currentNote] === 1)?"red":"blue") : "black";
             canvasContext.fillRect( x * (i+1), x, x/2, x/2 );
         }
         last16thNoteDrawn = currentNote;
