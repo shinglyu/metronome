@@ -2,7 +2,7 @@ var audioContext = null;
 var isPlaying = false;      // Are we currently playing?
 var startTime;              // The start time of the entire sequence.
 var current16thNote;        // What note is currently last scheduled?
-var tempo = 120.0;          // tempo (in beats per minute)
+var tempo = 60.0;          // tempo (in beats per minute)
 var lookahead = 25.0;       // How frequently to call scheduling function 
                             //(in milliseconds)
 var scheduleAheadTime = 0.1;    // How far ahead to schedule audio (sec)
@@ -127,9 +127,19 @@ function draw() {
         var x = Math.floor( canvas.width / 18 );
         canvasContext.clearRect(0,0,canvas.width, canvas.height); 
         for (var i=0; i<12; i++) {
-            canvasContext.fillStyle = ( currentNote == i ) ? 
-                ((pattern_buleria[currentNote] === 1)?"red":"blue") : "black";
-            canvasContext.fillRect( x * (i+1), x, x/2, x/2 );
+          var height = x/2 // default
+          canvasContext.fillStyle = "black";
+          if (pattern_buleria[i] === 1) {
+            height = x/2 * 1.5
+            canvasContext.fillStyle = "blue";
+          }
+          canvasContext.fillRect( x * (i+1), x, x/2, height );
+          canvasContext.fillText(i+1, x * (i+1), x*2 );
+          if (currentNote == i){
+            height = x/2 / 2
+            canvasContext.fillStyle = "red";
+            canvasContext.fillRect( x * (i+1), x, x/2, height );
+          }
         }
         last16thNoteDrawn = currentNote;
     }
